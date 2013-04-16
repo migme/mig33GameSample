@@ -12,8 +12,7 @@ import android.widget.Toast;
 import com.mig33.android.sdk.LoginListener;
 import com.mig33.android.sdk.Mig33;
 import com.mig33.android.sdk.Session;
-import com.projectgoth.BServiceHelper;
-import com.projectgoth.b.android.RestClient;
+import com.mig33.android.sdk.api.People;
 import com.projectgoth.b.data.Profile;
 import com.projectgoth.b.exception.RestClientException;
 import com.projectgoth.b.exception.RestErrorException;
@@ -46,9 +45,8 @@ public class MainActivity extends Activity {
 							
 							@Override
 							public void run() {
-								RestClient restclient = (RestClient) BServiceHelper.getInstance().getRestClient();
 								try {
-									final Profile profile = restclient.getProfileByUsername(session.getUsername());
+									final Profile profile = People.getProfile(session.getUsername());
 									runOnUiThread(new Runnable() {
 										
 										@Override

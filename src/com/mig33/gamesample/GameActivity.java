@@ -14,9 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.projectgoth.BServiceHelper;
-import com.projectgoth.b.MultipartFormData.FormData;
-import com.projectgoth.b.android.RestClient;
+import com.mig33.android.sdk.api.Message;
 import com.projectgoth.b.exception.RestClientException;
 import com.projectgoth.b.exception.RestErrorException;
 
@@ -89,14 +87,8 @@ public class GameActivity extends Activity {
 			@Override
 			public void run() {
 				boolean error = true;
-				RestClient restclient = (RestClient) BServiceHelper.getInstance().getRestClient();
 				try {
-					FormData photo = new FormData();
-					photo.name = "media";
-					photo.filename = System.currentTimeMillis() + ".jpg";
-					photo.mimeType = "image/jpeg";
-					photo.data = getBinaryData(IMAGES[idx]);
-					restclient.createNewPost("I love this game!", photo, false, false);
+					Message.createPost("I love this game!", getBinaryData(IMAGES[idx]), "image/jpeg", System.currentTimeMillis() + ".jpg", false, false);
 					
 					error = false;
 				} catch (RestErrorException e) {

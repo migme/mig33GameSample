@@ -1,8 +1,8 @@
 package com.mig33.gamesample;
 
-import com.projectgoth.b.data.Profile;
-
 import android.app.Application;
+
+import com.projectgoth.b.data.Profile;
 
 public class App extends Application {
 	
