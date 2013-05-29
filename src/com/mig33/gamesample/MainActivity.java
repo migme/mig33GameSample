@@ -7,75 +7,83 @@ import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.mig33.android.sdk.LoginListener;
 import com.mig33.android.sdk.Mig33;
-import com.mig33.android.sdk.Session;
 import com.mig33.android.sdk.api.People;
-import com.projectgoth.b.data.Profile;
-import com.projectgoth.b.exception.RestClientException;
-import com.projectgoth.b.exception.RestErrorException;
+import com.mig33.android.sdk.common.Tools;
+import com.mig33.android.sdk.model.UserInfo;
 
 public class MainActivity extends Activity {
 	
-	private Button mBtnConnectWithMig33;
-
-	@Override
+	private static final String	TAG		= "MainActivity";
+	
+	private Button				mBtnConnectWithMig33;
+	
+	private App					app;
+	
+	private Mig33				mig33	= Mig33.getInstance();
+	
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		Mig33.getInstance().initialize(getApplication());
-
+		app = (App) getApplication();
+		
+		mBtnConnectWithMig33 = (Button) findViewById(R.id.btn_connect_with_mig33);
+		mig33.setMainActivity(MainActivity.class);
+	}
+	
+	public void onResume() {
+		super.onResume();
+		
+		if (mig33.isAuthorized()) {
+			mBtnConnectWithMig33.setText("Start");
+			if (People.getInstance().getMyInfo() != null) {
+				UserInfo myInfo = People.getInstance().getMyInfo();
+				app.setMyInfo(myInfo);
+			}
+		} else {
+			mBtnConnectWithMig33.setText("login with mig33");
+		}
+		
 		mBtnConnectWithMig33 = (Button) findViewById(R.id.btn_connect_with_mig33);
 		mBtnConnectWithMig33.setOnClickListener(new OnClickListener() {
-			
-			@Override
 			public void onClick(View v) {
-				Mig33.getInstance().login(MainActivity.this, new LoginListener() {
-					
-					@Override
-					public void onLoginSuccess() {
-						final Session session = Session.getInstance();
-						
-						Toast.makeText(MainActivity.this, "login ok", Toast.LENGTH_LONG).show();
-						
-						Thread thread = new Thread(new Runnable() {
-							
-							@Override
-							public void run() {
-								try {
-									final Profile profile = People.getProfile(session.getUsername());
-									runOnUiThread(new Runnable() {
-										
-										@Override
-										public void run() {
-											((App)getApplication()).profile = profile;
-											Intent intent = new Intent(MainActivity.this, GameActivity.class);
-											startActivity(intent);
-											finish();
-										}
-									});
-								} catch (RestErrorException e) {
-									e.printStackTrace();
-								} catch (RestClientException e) {
-									e.printStackTrace();
-								}
-							}
-						});
-						thread.start();
-					}
-					
-					@Override
-					public void onLoginError() {
-						Toast.makeText(MainActivity.this, "login fail", Toast.LENGTH_LONG).show();
-					}
-				});
+				if (mig33.isAuthorized()) {
+					startGameActivity();
+				} else {
+					startLoginProcess();
+				}
+			}
+		});
+		
+		mig33.setLoginListener(new LoginListener() {
+			public void onLoginSuccess() {
+				Tools.log(TAG, "onLoginSuccess");
+				startGameActivity();
+				mig33.showToast(MainActivity.this, "Login Successful");
+			}
+			
+			public void onLoginError() {
+				Tools.log(TAG, "onLoginError");
+				mig33.showToast(MainActivity.this, "Login Failed");
 			}
 		});
 	}
-
+	
+	private void startGameActivity() {
+		Tools.log(TAG, "Starting Game Activity");
+		Intent intent = new Intent(this, GameActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		startActivity(intent);
+	}
+	
+	private void startLoginProcess() {
+		Tools.log(TAG, "Starting Login process");
+		mig33.login(this);
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
